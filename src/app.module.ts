@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { envValidationSchema } from './config/env.validation.js';
+import { join } from 'node:path';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo';
 
 @Module({
   imports: [
@@ -22,6 +25,14 @@ import { envValidationSchema } from './config/env.validation.js';
         synchronize: false,
         logging: ['error', 'warn'],
       }),
+    }),
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile:
+        process.env.NODE_ENV === 'production'
+          ? true
+          : join(process.cwd(), 'src/schema.gql'),
+      sortSchema: true,
     }),
   ],
 })
