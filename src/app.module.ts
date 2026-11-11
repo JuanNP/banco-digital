@@ -9,7 +9,7 @@ import { CustomersModule } from './customers/customers.module.js';
 import { AccountsModule } from './accounts/accounts.module.js';
 import { ExchangeRatesModule } from './exchange-rates/exchange-rates.module.js';
 import { TransactionsModule } from './transactions/transactions.module.js';
-
+import { formatGraphQLError } from './common/errors/format-graphql-error.js';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -37,6 +37,8 @@ import { TransactionsModule } from './transactions/transactions.module.js';
           ? true
           : join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
+      autoTransformHttpErrors: false,
+      formatError: formatGraphQLError,
     }),
     CustomersModule,
     AccountsModule,
