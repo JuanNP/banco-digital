@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo';
 import { CustomersModule } from './customers/customers.module.js';
-import { AccountsModule } from './accounts/acounts.module.js';
+import { AccountsModule } from './accounts/accounts.module.js';
 import { ExchangeRatesModule } from './exchange-rates/exchange-rates.module.js';
 import { TransactionsModule } from './transactions/transactions.module.js';
 
