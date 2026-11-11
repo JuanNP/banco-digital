@@ -51,13 +51,14 @@ services:
   app:
     build: .
     container_name: banco_app
+    profiles: ['app']
     env_file: .env
     environment:
       DB_HOST: postgres
       REDIS_HOST: redis
       ELASTIC_NODE: http://elasticsearch:9200
     ports:
-      - "${PORT}:3000"
+      - '${PORT}:3001'
     depends_on:
       postgres:
         condition: service_healthy
