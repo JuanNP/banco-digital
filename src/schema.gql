@@ -55,11 +55,20 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type ExchangeRate {
+  baseCurrency: Currency!
+  id: ID!
+  rate: String!
+  targetCurrency: Currency!
+  updatedAt: DateTime!
+}
+
 type Mutation {
   closeAccount(id: ID!): Account!
   createCustomer(input: CreateCustomerInput!): Customer!
   freezeAccount(id: ID!): Account!
   openAccount(input: OpenAccountInput!): Account!
+  setExchangeRate(input: SetExchangeRateInput!): ExchangeRate!
   unfreezeAccount(id: ID!): Account!
   updateCustomer(id: ID!, input: UpdateCustomerInput!): Customer!
 }
@@ -73,6 +82,13 @@ type Query {
   account(id: ID!): Account!
   customer(id: ID!): Customer!
   customers(limit: Int! = 20, offset: Int! = 0): [Customer!]!
+  exchangeRates: [ExchangeRate!]!
+}
+
+input SetExchangeRateInput {
+  baseCurrency: Currency!
+  rate: String!
+  targetCurrency: Currency!
 }
 
 input UpdateCustomerInput {
