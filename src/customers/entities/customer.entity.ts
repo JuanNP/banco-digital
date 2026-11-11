@@ -33,7 +33,7 @@ export class Customer {
     @Column({ length: 150, unique: true })
     email: string;
     
-    @Field()
+    @Field(() => String, { nullable: true })
     @Column({ type: 'varchar', length: 30, nullable: true })
     phone: string | null;
     

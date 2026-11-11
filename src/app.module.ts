@@ -5,6 +5,10 @@ import { envValidationSchema } from './config/env.validation.js';
 import { join } from 'node:path';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo';
+import { CustomersModule } from './customers/customers.module.js';
+import { AccountsModule } from './accounts/acounts.module.js';
+import { ExchangeRatesModule } from './exchange-rates/exchange-rates.module.js';
+import { TransactionsModule } from './transactions/transactions.module.js';
 
 @Module({
   imports: [
@@ -34,6 +38,10 @@ import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo';
           : join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
     }),
+    CustomersModule,
+    AccountsModule,
+    ExchangeRatesModule,
+    TransactionsModule,
   ],
 })
 export class AppModule {}
