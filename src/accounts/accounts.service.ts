@@ -29,7 +29,7 @@ export class AccountsService {
   }
 
   async findOne(id: string): Promise<Account> {
-    const account = await this.accountsRepository.findOneBy({ id });
+    const account = await this.accountsRepository.findOneBy({ accountNumber: id || id });
     if (!account) {
       throw new NotFoundException(`Account ${id} not found`);
     }
