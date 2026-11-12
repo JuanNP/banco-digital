@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Decimal } from 'decimal.js';
 import { DataSource, EntityManager, Repository } from 'typeorm';
@@ -16,6 +21,7 @@ import { Transaction } from './entities/transaction.entity.js';
 
 @Injectable()
 export class TransactionsService {
+  private readonly logger = new Logger(TransactionsService.name);
   constructor(
     @InjectRepository(Transaction)
     private readonly transactionsRepository: Repository<Transaction>,
@@ -24,7 +30,11 @@ export class TransactionsService {
     private readonly exchangeRatesService: ExchangeRatesService,
   ) {}
 
-  deposit({ accountNumber, amount, description }: DepositInput): Promise<Transaction> {
+  deposit({
+    accountNumber,
+    amount,
+    description,
+  }: DepositInput): Promise<Transaction> {
     const value = this.toAmount(amount);
 
     return this.dataSource.transaction(async (manager) => {
@@ -34,7 +44,7 @@ export class TransactionsService {
       account.balance = value.plus(account.balance).toFixed(2);
       await manager.save(account);
 
-      return manager.save(
+      const deposit = await manager.save(
         manager.create(Transaction, {
           type: TransactionType.DEPOSIT,
           amount: value.toFixed(2),
@@ -43,10 +53,22 @@ export class TransactionsService {
           description,
         }),
       );
+
+      this.logger.log(
+        `Deposit -> ${account.accountNumber}: ` +
+          `${value.toFixed(2)} ${account.currency} ` +
+          `Description: ${description}`,
+      );
+
+      return deposit;
     });
   }
 
-  withdraw({ accountNumber, amount, description }: WithdrawInput): Promise<Transaction> {
+  withdraw({
+    accountNumber,
+    amount,
+    description,
+  }: WithdrawInput): Promise<Transaction> {
     const value = this.toAmount(amount);
 
     return this.dataSource.transaction(async (manager) => {
@@ -57,7 +79,7 @@ export class TransactionsService {
       account.balance = new Decimal(account.balance).minus(value).toFixed(2);
       await manager.save(account);
 
-      return manager.save(
+      const withdraw = await manager.save(
         manager.create(Transaction, {
           type: TransactionType.WITHDRAWAL,
           amount: value.toFixed(2),
@@ -66,20 +88,35 @@ export class TransactionsService {
           description,
         }),
       );
+
+      this.logger.log(
+        `Withdrawal -> ${account.accountNumber}: ` +
+          `${value.toFixed(2)} ${account.currency} ` +
+          `Description: ${description}`,
+      );
+
+      return withdraw;
     });
   }
 
-    transfer(input: TransferInput): Promise<Transaction> {
-    const { sourceAccountNumber, destinationAccountNumber, description } = input;
+  transfer(input: TransferInput): Promise<Transaction> {
+    const { sourceAccountNumber, destinationAccountNumber, description } =
+      input;
     const value = this.toAmount(input.amount);
 
     if (sourceAccountNumber === destinationAccountNumber) {
-      throw new BusinessRuleException('SAME_ACCOUNT', 'Cannot transfer to the same account');
+      throw new BusinessRuleException(
+        'SAME_ACCOUNT',
+        'Cannot transfer to the same account',
+      );
     }
 
     return this.dataSource.transaction(async (manager) => {
       const locked = new Map<string, Account>();
-      for (const number of [sourceAccountNumber, destinationAccountNumber].sort()) {
+      for (const number of [
+        sourceAccountNumber,
+        destinationAccountNumber,
+      ].sort()) {
         locked.set(number, await this.lockAccount(manager, number));
       }
       const source = locked.get(sourceAccountNumber)!;
@@ -89,15 +126,20 @@ export class TransactionsService {
       this.ensureActive(destination);
       this.ensureFunds(source, value);
 
-      const rate = await this.exchangeRatesService.getRate(source.currency, destination.currency);
-      const converted = value.mul(rate).toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
+      const rate = await this.exchangeRatesService.getRate(
+        source.currency,
+        destination.currency,
+      );
+      const converted = value
+        .mul(rate)
+        .toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
       const isConversion = source.currency !== destination.currency;
 
       source.balance = new Decimal(source.balance).minus(value).toFixed(2);
       destination.balance = converted.plus(destination.balance).toFixed(2);
       await manager.save([source, destination]);
 
-      return manager.save(
+      const transaction = await manager.save(
         manager.create(Transaction, {
           type: TransactionType.TRANSFER,
           amount: value.toFixed(2),
@@ -109,6 +151,16 @@ export class TransactionsService {
           description,
         }),
       );
+
+      this.logger.log(
+        `Transfer ${source.accountNumber} -> ${destination.accountNumber}: ` +
+          `${value.toFixed(2)} ${source.currency}` +
+          (isConversion
+            ? ` (${converted.toFixed(2)} ${destination.currency})`
+            : ''),
+      );
+
+      return transaction;
     });
   }
 
@@ -120,18 +172,27 @@ export class TransactionsService {
     return transaction;
   }
 
-  async findByAccount(accountId: string, { limit, offset }: PaginationArgs): Promise<Transaction[]> {
+  async findByAccount(
+    accountId: string,
+    { limit, offset }: PaginationArgs,
+  ): Promise<Transaction[]> {
     await this.accountsService.findOne(accountId);
 
     return this.transactionsRepository.find({
-      where: [{ sourceAccountId: accountId }, { destinationAccountId: accountId }],
+      where: [
+        { sourceAccountId: accountId },
+        { destinationAccountId: accountId },
+      ],
       order: { createdAt: 'DESC' },
       take: limit,
       skip: offset,
     });
   }
 
-   private async lockAccount(manager: EntityManager, accountNumber: string): Promise<Account> {
+  private async lockAccount(
+    manager: EntityManager,
+    accountNumber: string,
+  ): Promise<Account> {
     const account = await manager.findOne(Account, {
       where: { accountNumber },
       lock: { mode: 'pessimistic_write' },
@@ -153,7 +214,10 @@ export class TransactionsService {
 
   private ensureFunds(account: Account, amount: Decimal) {
     if (new Decimal(account.balance).lessThan(amount)) {
-      throw new BusinessRuleException('INSUFFICIENT_FUNDS', 'Insufficient funds');
+      throw new BusinessRuleException(
+        'INSUFFICIENT_FUNDS',
+        'Insufficient funds',
+      );
     }
   }
 

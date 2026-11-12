@@ -10,6 +10,8 @@ import { AccountsModule } from './accounts/accounts.module.js';
 import { ExchangeRatesModule } from './exchange-rates/exchange-rates.module.js';
 import { TransactionsModule } from './transactions/transactions.module.js';
 import { formatGraphQLError } from './common/errors/format-graphql-error.js';
+import { HealthModule } from './health/health.module.js';
+import { requestLoggingPlugin } from './common/graphql/request-logging.plugin.js';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -39,11 +41,13 @@ import { formatGraphQLError } from './common/errors/format-graphql-error.js';
       sortSchema: true,
       autoTransformHttpErrors: false,
       formatError: formatGraphQLError,
+      plugins: [requestLoggingPlugin],
     }),
     CustomersModule,
     AccountsModule,
     ExchangeRatesModule,
     TransactionsModule,
+    HealthModule,
   ],
 })
 export class AppModule {}
