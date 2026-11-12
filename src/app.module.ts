@@ -12,6 +12,7 @@ import { TransactionsModule } from './transactions/transactions.module.js';
 import { formatGraphQLError } from './common/errors/format-graphql-error.js';
 import { HealthModule } from './health/health.module.js';
 import { requestLoggingPlugin } from './common/graphql/request-logging.plugin.js';
+import { CacheModule } from './cache/cache.module.js';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -43,6 +44,7 @@ import { requestLoggingPlugin } from './common/graphql/request-logging.plugin.js
       formatError: formatGraphQLError,
       plugins: [requestLoggingPlugin],
     }),
+    CacheModule,
     CustomersModule,
     AccountsModule,
     ExchangeRatesModule,
