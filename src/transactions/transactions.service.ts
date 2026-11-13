@@ -30,7 +30,7 @@ export class TransactionsService {
     private readonly exchangeRatesService: ExchangeRatesService,
   ) {}
 
-  deposit({
+  async deposit({
     accountNumber,
     amount,
     description,
@@ -64,7 +64,7 @@ export class TransactionsService {
     });
   }
 
-  withdraw({
+  async withdraw({
     accountNumber,
     amount,
     description,
@@ -99,7 +99,7 @@ export class TransactionsService {
     });
   }
 
-  transfer(input: TransferInput): Promise<Transaction> {
+  async transfer(input: TransferInput): Promise<Transaction> {
     const { sourceAccountNumber, destinationAccountNumber, description } =
       input;
     const value = this.toAmount(input.amount);
@@ -172,11 +172,17 @@ export class TransactionsService {
     return transaction;
   }
 
-    async findByAccount(accountNumber: string, { limit, offset }: PaginationArgs): Promise<Transaction[]> {
+  async findByAccount(
+    accountNumber: string,
+    { limit, offset }: PaginationArgs,
+  ): Promise<Transaction[]> {
     const account = await this.accountsService.findByNumber(accountNumber);
 
     return this.transactionsRepository.find({
-      where: [{ sourceAccountId: account.id }, { destinationAccountId: account.id }],
+      where: [
+        { sourceAccountId: account.id },
+        { destinationAccountId: account.id },
+      ],
       order: { createdAt: 'DESC' },
       take: limit,
       skip: offset,
