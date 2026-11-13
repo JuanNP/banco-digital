@@ -172,17 +172,11 @@ export class TransactionsService {
     return transaction;
   }
 
-  async findByAccount(
-    accountId: string,
-    { limit, offset }: PaginationArgs,
-  ): Promise<Transaction[]> {
-    await this.accountsService.findOne(accountId);
+    async findByAccount(accountNumber: string, { limit, offset }: PaginationArgs): Promise<Transaction[]> {
+    const account = await this.accountsService.findByNumber(accountNumber);
 
     return this.transactionsRepository.find({
-      where: [
-        { sourceAccountId: accountId },
-        { destinationAccountId: accountId },
-      ],
+      where: [{ sourceAccountId: account.id }, { destinationAccountId: account.id }],
       order: { createdAt: 'DESC' },
       take: limit,
       skip: offset,

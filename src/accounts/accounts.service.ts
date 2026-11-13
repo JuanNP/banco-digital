@@ -28,10 +28,18 @@ export class AccountsService {
     return this.accountsRepository.save(account);
   }
 
-  async findOne(id: string): Promise<Account> {
-    const account = await this.accountsRepository.findOneBy({ accountNumber: id || id });
+    async findOne(id: string): Promise<Account> {
+    const account = await this.accountsRepository.findOneBy({ id });
     if (!account) {
       throw new NotFoundException(`Account ${id} not found`);
+    }
+    return account;
+  }
+
+  async findByNumber(accountNumber: string): Promise<Account> {
+    const account = await this.accountsRepository.findOneBy({ accountNumber });
+    if (!account) {
+      throw new NotFoundException(`Account ${accountNumber} not found`);
     }
     return account;
   }
@@ -43,36 +51,28 @@ export class AccountsService {
     });
   }
 
-  freeze(id: string) {
-    return this.changeStatus(id, AccountStatus.FROZEN);
+    async freeze(accountNumber: string) {
+    return this.changeStatus(await this.findByNumber(accountNumber), AccountStatus.FROZEN);
   }
 
-  unfreeze(id: string) {
-    return this.changeStatus(id, AccountStatus.ACTIVE);
+  async unfreeze(accountNumber: string) {
+    return this.changeStatus(await this.findByNumber(accountNumber), AccountStatus.ACTIVE);
   }
 
-  async close(id: string): Promise<Account> {
-    const account = await this.findOne(id);
+  async close(accountNumber: string): Promise<Account> {
+    const account = await this.findByNumber(accountNumber);
     if (!new Decimal(account.balance).isZero()) {
       throw new BusinessRuleException(
         'ACCOUNT_HAS_BALANCE',
         'Only accounts with zero balance can be closed',
       );
     }
-    return this.changeStatus(id, AccountStatus.CLOSED);
+    return this.changeStatus(account, AccountStatus.CLOSED);
   }
 
-  private async changeStatus(
-    id: string,
-    status: AccountStatus,
-  ): Promise<Account> {
-    const account = await this.findOne(id);
-
+  private async changeStatus(account: Account, status: AccountStatus): Promise<Account> {
     if (account.status === AccountStatus.CLOSED) {
-      throw new BusinessRuleException(
-        'ACCOUNT_CLOSED',
-        'Closed accounts cannot be modified',
-      );
+      throw new BusinessRuleException('ACCOUNT_CLOSED', 'Closed accounts cannot be modified');
     }
     if (account.status === status) {
       return account;

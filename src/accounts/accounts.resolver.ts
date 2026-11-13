@@ -1,7 +1,6 @@
 import { ParseUUIDPipe } from '@nestjs/common';
 import {
   Args,
-  ID,
   Mutation,
   Parent,
   Query,
@@ -13,6 +12,7 @@ import { CustomersService } from '../customers/customers.service.js';
 import { AccountsService } from './accounts.service.js';
 import { OpenAccountInput } from './dto/open-account.input.js';
 import { Account } from './entities/account.entity.js';
+import { AccountNumberArgs } from './dto/account-number.args.js';
 
 @Resolver(() => Account)
 export class AccountsResolver {
@@ -21,9 +21,9 @@ export class AccountsResolver {
     private readonly customersService: CustomersService,
   ) {}
 
-  @Query(() => Account)
-  account(@Args('id', { type: () => ID }, ParseUUIDPipe) id: string) {
-    return this.accountsService.findOne(id);
+    @Query(() => Account)
+  account(@Args() { accountNumber }: AccountNumberArgs) {
+    return this.accountsService.findByNumber(accountNumber);
   }
 
   @Mutation(() => Account)
@@ -32,18 +32,18 @@ export class AccountsResolver {
   }
 
   @Mutation(() => Account)
-  freezeAccount(@Args('id', { type: () => ID }, ParseUUIDPipe) id: string) {
-    return this.accountsService.freeze(id);
+  freezeAccount(@Args() { accountNumber }: AccountNumberArgs) {
+    return this.accountsService.freeze(accountNumber);
   }
 
   @Mutation(() => Account)
-  unfreezeAccount(@Args('id', { type: () => ID }, ParseUUIDPipe) id: string) {
-    return this.accountsService.unfreeze(id);
+  unfreezeAccount(@Args() { accountNumber }: AccountNumberArgs) {
+    return this.accountsService.unfreeze(accountNumber);
   }
 
   @Mutation(() => Account)
-  closeAccount(@Args('id', { type: () => ID }, ParseUUIDPipe) id: string) {
-    return this.accountsService.close(id);
+  closeAccount(@Args() { accountNumber }: AccountNumberArgs) {
+    return this.accountsService.close(accountNumber);
   }
 
   @ResolveField(() => Customer)

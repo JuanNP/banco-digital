@@ -70,14 +70,14 @@ type ExchangeRate {
 }
 
 type Mutation {
-  closeAccount(id: ID!): Account!
+  closeAccount(accountNumber: String!): Account!
   createCustomer(input: CreateCustomerInput!): Customer!
   deposit(input: DepositInput!): Transaction!
-  freezeAccount(id: ID!): Account!
+  freezeAccount(accountNumber: String!): Account!
   openAccount(input: OpenAccountInput!): Account!
   setExchangeRate(input: SetExchangeRateInput!): ExchangeRate!
   transfer(input: TransferInput!): Transaction!
-  unfreezeAccount(id: ID!): Account!
+  unfreezeAccount(accountNumber: String!): Account!
   updateCustomer(id: ID!, input: UpdateCustomerInput!): Customer!
   withdraw(input: WithdrawInput!): Transaction!
 }
@@ -88,8 +88,8 @@ input OpenAccountInput {
 }
 
 type Query {
-  account(id: ID!): Account!
-  accountTransactions(accountId: ID!, limit: Int! = 20, offset: Int! = 0): [Transaction!]!
+  account(accountNumber: String!): Account!
+  accountTransactions(accountNumber: String!, limit: Int! = 20, offset: Int! = 0): [Transaction!]!
   customer(id: ID!): Customer!
   customers(limit: Int! = 20, offset: Int! = 0): [Customer!]!
   exchangeRates: [ExchangeRate!]!

@@ -6,6 +6,7 @@ import { TransferInput } from './dto/transfer.input.js';
 import { WithdrawInput } from './dto/withdraw.input.js';
 import { Transaction } from './entities/transaction.entity.js';
 import { TransactionsService } from './transactions.service.js';
+import { AccountNumberArgs } from '../accounts/dto/account-number.args.js';
 
 @Resolver(() => Transaction)
 export class TransactionsResolver {
@@ -16,12 +17,12 @@ export class TransactionsResolver {
     return this.transactionsService.findOne(id);
   }
 
-  @Query(() => [Transaction])
+    @Query(() => [Transaction])
   accountTransactions(
-    @Args('accountId', { type: () => ID }, ParseUUIDPipe) accountId: string,
+    @Args() { accountNumber }: AccountNumberArgs,
     @Args() pagination: PaginationArgs,
   ) {
-    return this.transactionsService.findByAccount(accountId, pagination);
+    return this.transactionsService.findByAccount(accountNumber, pagination);
   }
 
   @Mutation(() => Transaction)
