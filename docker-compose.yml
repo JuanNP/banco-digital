@@ -54,11 +54,14 @@ services:
     profiles: ['app']
     env_file: .env
     environment:
+      PORT: 3000
       DB_HOST: postgres
+      DB_PORT: 5432
       REDIS_HOST: redis
+      REDIS_PORT: 6379
       ELASTIC_NODE: http://elasticsearch:9200
     ports:
-      - '${PORT}:3001'
+      - '${PORT}:3000'
     depends_on:
       postgres:
         condition: service_healthy
@@ -66,7 +69,6 @@ services:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
-
 volumes:
   postgres_data:
   elastic_data:

@@ -57,7 +57,7 @@ export class TransactionsService {
       this.logger.log(
         `Deposit -> ${account.accountNumber}: ` +
           `${value.toFixed(2)} ${account.currency} ` +
-          `Description: ${description}`,
+          (description ? `Description: ${description}` : ''),
       );
 
       return deposit;
@@ -92,7 +92,7 @@ export class TransactionsService {
       this.logger.log(
         `Withdrawal -> ${account.accountNumber}: ` +
           `${value.toFixed(2)} ${account.currency} ` +
-          `Description: ${description}`,
+          (description ? `Description: ${description}` : ''),
       );
 
       return withdraw;

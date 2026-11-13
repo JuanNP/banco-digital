@@ -44,6 +44,7 @@ import { SearchModule } from './search/search.module.js';
       autoTransformHttpErrors: false,
       formatError: formatGraphQLError,
       plugins: [requestLoggingPlugin],
+      graphiql: true,
     }),
     CacheModule,
     SearchModule,
