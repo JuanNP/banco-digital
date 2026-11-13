@@ -75,6 +75,9 @@ type Mutation {
   deposit(input: DepositInput!): Transaction!
   freezeAccount(accountNumber: String!): Account!
   openAccount(input: OpenAccountInput!): Account!
+
+  """Rebuilds the customers search index from PostgreSQL"""
+  reindexCustomers: Int!
   setExchangeRate(input: SetExchangeRateInput!): ExchangeRate!
   transfer(input: TransferInput!): Transaction!
   unfreezeAccount(accountNumber: String!): Account!
@@ -93,6 +96,7 @@ type Query {
   customer(id: ID!): Customer!
   customers(limit: Int! = 20, offset: Int! = 0): [Customer!]!
   exchangeRates: [ExchangeRate!]!
+  searchCustomers(limit: Int! = 10, term: String!): [Customer!]!
   transaction(id: ID!): Transaction!
 }
 

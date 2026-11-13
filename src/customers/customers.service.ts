@@ -4,23 +4,26 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Customer } from './entities/customer.entity.js';
 import { CreateCustomerInput } from './dto/create-customer.input.js';
 import { UpdateCustomerInput } from './dto/update-customer.input.js';
 import { PaginationArgs } from '../common/dto/pagination.args.js';
+import { CustomersSearchService } from './customers-search.service.js';
 
 @Injectable()
 export class CustomersService {
   constructor(
     @InjectRepository(Customer)
     private readonly customersRepository: Repository<Customer>,
+    private readonly customersSearch: CustomersSearchService,
   ) {}
 
   async create(input: CreateCustomerInput): Promise<Customer> {
     await this.ensureUnique(input.email, input.documentId);
-    const customer = this.customersRepository.create(input);
-    return this.customersRepository.save(customer);
+    const customer = await this.customersRepository.save(this.customersRepository.create(input));
+    await this.customersSearch.index(customer);
+    return customer;
   }
 
   findAll({ limit, offset }: PaginationArgs): Promise<Customer[]> {
@@ -43,7 +46,19 @@ export class CustomersService {
     const customer = await this.findOne(id);
     await this.ensureUnique(input.email, input.documentId, id);
     Object.assign(customer, input);
-    return this.customersRepository.save(customer);
+
+    const updated = await this.customersRepository.save(customer);
+    await this.customersSearch.index(updated);
+    return updated;
+  }
+
+  async search(term: string, limit: number): Promise<Customer[]> {
+    const ids = await this.customersSearch.search(term, limit);
+    if (ids.length === 0) return [];
+
+    const customers = await this.customersRepository.findBy({ id: In(ids) });
+    const byId = new Map(customers.map((customer) => [customer.id, customer]));
+    return ids.map((id) => byId.get(id)).filter((customer) => customer !== undefined);
   }
 
   private async ensureUnique(
