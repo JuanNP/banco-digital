@@ -11,7 +11,7 @@ import type { Relation } from 'typeorm';
 import { Account } from '../../accounts/entities/account.entity.js';
 import { Currency } from '../../common/enums/currency.enum.js';
 import { TransactionType } from '../../common/enums/transaction-type.enum.js';
-import { Field, ID, ObjectType } from '@nestjs/graphql'
+import { Field, ID, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
 @Entity('transactions')

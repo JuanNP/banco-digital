@@ -13,6 +13,8 @@ export class SetExchangeRateInput {
   targetCurrency: Currency;
 
   @Field()
-  @Matches(/^\d{1,12}(\.\d{1,6})?$/, { message: 'rate must be a positive decimal with up to 6 places' })
+  @Matches(/^\d{1,12}(\.\d{1,6})?$/, {
+    message: 'rate must be a positive decimal with up to 6 places',
+  })
   rate: string;
 }

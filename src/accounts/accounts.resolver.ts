@@ -1,4 +1,3 @@
-import { ParseUUIDPipe } from '@nestjs/common';
 import {
   Args,
   Mutation,
@@ -21,7 +20,7 @@ export class AccountsResolver {
     private readonly customersService: CustomersService,
   ) {}
 
-    @Query(() => Account)
+  @Query(() => Account)
   account(@Args() { accountNumber }: AccountNumberArgs) {
     return this.accountsService.findByNumber(accountNumber);
   }

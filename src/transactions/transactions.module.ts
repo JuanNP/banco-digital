@@ -7,7 +7,11 @@ import { TransactionsResolver } from './transactions.resolver.js';
 import { TransactionsService } from './transactions.service.js';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Transaction]), AccountsModule, ExchangeRatesModule],
+  imports: [
+    TypeOrmModule.forFeature([Transaction]),
+    AccountsModule,
+    ExchangeRatesModule,
+  ],
   providers: [TransactionsService, TransactionsResolver],
 })
 export class TransactionsModule {}

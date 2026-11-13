@@ -1,5 +1,10 @@
 import { Client } from '@elastic/elasticsearch';
-import { Inject, Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  type OnApplicationBootstrap,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ELASTIC_CLIENT } from '../search/search.constants.js';
@@ -7,7 +12,10 @@ import { Customer } from './entities/customer.entity.js';
 
 const INDEX = 'customers';
 
-type CustomerDocument = Pick<Customer, 'firstName' | 'lastName' | 'email' | 'documentId'>;
+type CustomerDocument = Pick<
+  Customer,
+  'firstName' | 'lastName' | 'email' | 'documentId'
+>;
 
 @Injectable()
 export class CustomersSearchService implements OnApplicationBootstrap {
@@ -27,7 +35,9 @@ export class CustomersSearchService implements OnApplicationBootstrap {
         await this.reindexAll();
       }
     } catch (error) {
-      this.logger.warn(`Elasticsearch not available on startup: ${(error as Error).message}`);
+      this.logger.warn(
+        `Elasticsearch not available on startup: ${(error as Error).message}`,
+      );
     }
   }
 
@@ -39,7 +49,9 @@ export class CustomersSearchService implements OnApplicationBootstrap {
         document: this.toDocument(customer),
       });
     } catch (error) {
-      this.logger.warn(`Could not index customer ${customer.id}: ${(error as Error).message}`);
+      this.logger.warn(
+        `Could not index customer ${customer.id}: ${(error as Error).message}`,
+      );
     }
   }
 
@@ -98,7 +110,12 @@ export class CustomersSearchService implements OnApplicationBootstrap {
     this.logger.log(`Created index "${INDEX}"`);
   }
 
-  private toDocument({ firstName, lastName, email, documentId }: Customer): CustomerDocument {
+  private toDocument({
+    firstName,
+    lastName,
+    email,
+    documentId,
+  }: Customer): CustomerDocument {
     return { firstName, lastName, email, documentId };
   }
 }

@@ -33,14 +33,22 @@ export function formatGraphQLError(
       path,
       locations,
       extensions: {
-        code: body.code ?? codesByStatus[original.getStatus()] ?? 'INTERNAL_SERVER_ERROR',
+        code:
+          body.code ??
+          codesByStatus[original.getStatus()] ??
+          'INTERNAL_SERVER_ERROR',
         ...(details && { details }),
       },
     };
   }
 
   if (original instanceof GraphQLError) {
-    return { message: formatted.message, path, locations, extensions: { code: formatted.extensions?.code } };
+    return {
+      message: formatted.message,
+      path,
+      locations,
+      extensions: { code: formatted.extensions?.code },
+    };
   }
 
   logger.error(original instanceof Error ? original.stack : original);

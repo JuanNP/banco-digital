@@ -21,7 +21,9 @@ export class CustomersService {
 
   async create(input: CreateCustomerInput): Promise<Customer> {
     await this.ensureUnique(input.email, input.documentId);
-    const customer = await this.customersRepository.save(this.customersRepository.create(input));
+    const customer = await this.customersRepository.save(
+      this.customersRepository.create(input),
+    );
     await this.customersSearch.index(customer);
     return customer;
   }
@@ -58,7 +60,9 @@ export class CustomersService {
 
     const customers = await this.customersRepository.findBy({ id: In(ids) });
     const byId = new Map(customers.map((customer) => [customer.id, customer]));
-    return ids.map((id) => byId.get(id)).filter((customer) => customer !== undefined);
+    return ids
+      .map((id) => byId.get(id))
+      .filter((customer) => customer !== undefined);
   }
 
   private async ensureUnique(

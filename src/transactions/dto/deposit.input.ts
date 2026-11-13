@@ -1,5 +1,5 @@
-import { Field, ID, InputType } from '@nestjs/graphql';
-import { IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { Field, InputType } from '@nestjs/graphql';
+import { IsOptional, IsString, MaxLength } from 'class-validator';
 import { IsMoneyAmount } from './amount.validator.js';
 import { IsAccountNumber } from '../../common/validators/account-number.validator.js';
 

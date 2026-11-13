@@ -183,6 +183,13 @@ npm run test:cov     # unitarias con cobertura
 npm run test:e2e     # integración (requiere docker compose up)
 ```
 
+### Calidad de código
+
+```bash
+npm run lint          # ESLint (typescript-eslint)
+npm run format:check  # Prettier
+```
+
 - **Unitarias:** `TransactionsService` (saldos, conversión, orden de bloqueo, reglas de negocio), `AccountsService` (estados de cuenta) y `ExchangeRatesService` (caché e invalidación). Los servicios se instancian directamente con dependencias simuladas.
 - **Integración:** levantan la app completa contra PostgreSQL, Redis y Elasticsearch reales y prueban por GraphQL: health, formato de errores y una transferencia entre monedas de principio a fin.
 

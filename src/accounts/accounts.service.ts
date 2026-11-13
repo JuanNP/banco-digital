@@ -28,7 +28,7 @@ export class AccountsService {
     return this.accountsRepository.save(account);
   }
 
-    async findOne(id: string): Promise<Account> {
+  async findOne(id: string): Promise<Account> {
     const account = await this.accountsRepository.findOneBy({ id });
     if (!account) {
       throw new NotFoundException(`Account ${id} not found`);
@@ -51,12 +51,18 @@ export class AccountsService {
     });
   }
 
-    async freeze(accountNumber: string) {
-    return this.changeStatus(await this.findByNumber(accountNumber), AccountStatus.FROZEN);
+  async freeze(accountNumber: string) {
+    return this.changeStatus(
+      await this.findByNumber(accountNumber),
+      AccountStatus.FROZEN,
+    );
   }
 
   async unfreeze(accountNumber: string) {
-    return this.changeStatus(await this.findByNumber(accountNumber), AccountStatus.ACTIVE);
+    return this.changeStatus(
+      await this.findByNumber(accountNumber),
+      AccountStatus.ACTIVE,
+    );
   }
 
   async close(accountNumber: string): Promise<Account> {
@@ -70,9 +76,15 @@ export class AccountsService {
     return this.changeStatus(account, AccountStatus.CLOSED);
   }
 
-  private async changeStatus(account: Account, status: AccountStatus): Promise<Account> {
+  private async changeStatus(
+    account: Account,
+    status: AccountStatus,
+  ): Promise<Account> {
     if (account.status === AccountStatus.CLOSED) {
-      throw new BusinessRuleException('ACCOUNT_CLOSED', 'Closed accounts cannot be modified');
+      throw new BusinessRuleException(
+        'ACCOUNT_CLOSED',
+        'Closed accounts cannot be modified',
+      );
     }
     if (account.status === status) {
       return account;

@@ -1,5 +1,12 @@
 import { ArgsType, Field, Int } from '@nestjs/graphql';
-import { IsInt, IsString, Max, MaxLength, Min, MinLength } from 'class-validator';
+import {
+  IsInt,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+  MinLength,
+} from 'class-validator';
 
 @ArgsType()
 export class SearchCustomersArgs {

@@ -7,6 +7,6 @@ import { ElasticsearchHealthIndicator } from './elasticsearch.health.js';
 @Module({
   imports: [TerminusModule.forRoot({ errorLogStyle: 'pretty' })],
   controllers: [HealthController],
-  providers: [RedisHealthIndicator, ElasticsearchHealthIndicator ],
+  providers: [RedisHealthIndicator, ElasticsearchHealthIndicator],
 })
 export class HealthModule {}

@@ -17,7 +17,7 @@ export class TransactionsResolver {
     return this.transactionsService.findOne(id);
   }
 
-    @Query(() => [Transaction])
+  @Query(() => [Transaction])
   accountTransactions(
     @Args() { accountNumber }: AccountNumberArgs,
     @Args() pagination: PaginationArgs,
