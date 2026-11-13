@@ -1,126 +1,252 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Banco Digital
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Microservicio de banca para la gestión de clientes, cuentas y movimientos (depósitos, retiros y transferencias) con soporte multimoneda (DOP, USD, EUR) y conversión automática.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Stack
 
-## Description
+- **NestJS 12 + TypeScript (ESM)**
+- **GraphQL**
+- **PostgreSQL 16 + TypeORM**
+- **Redis**
+- **Elasticsearch 8**
+- **Vitest + Supertest**
+- **Docker Compose**
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Requisitos
 
-## Project setup
+- Node.js 22 o superior
+- Docker y Docker Compose
+
+## Ejecutar con Docker (recomendado)
+
+Levanta la base de datos, Redis, Elasticsearch y la aplicación. Las migraciones y los datos de prueba se aplican solos al iniciar.
 
 ```bash
-$ npm install
+cp .env.example .env
+docker compose --profile app up -d --build
 ```
 
-## Compile and run the project
+Elasticsearch puede tardar entre 30 y 60 segundos en estar listo; la app espera a que todos los servicios estén healthy.
+
+- GraphiQL: http://localhost:3001/graphql
+- Health: http://localhost:3001/health
+
+El puerto se configura con `PORT` en el `.env`.
+
+## Ejecutar en local (desarrollo)
+
+Docker solo para la infraestructura y la app con hot reload:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+cp .env.example .env
+npm install
+docker compose up -d          # Postgres, Redis y Elasticsearch
+npm run migration:run         # esquema + datos de prueba
+npm run start:dev
 ```
 
-## Run tests
+> Postgres se expone en el puerto **5433** de la máquina para no chocar con una instalación local. Dentro de la red de Docker usa el 5432.
+
+## Variables de entorno
+
+| Variable                            | Descripción                           | Valor por defecto                    |
+| ----------------------------------- | ------------------------------------- | ------------------------------------ |
+| `PORT`                              | Puerto HTTP de la app                 | `3001`                               |
+| `NODE_ENV`                          | `development` / `production` / `test` | `development`                        |
+| `DB_HOST`, `DB_PORT`                | Conexión a PostgreSQL                 | `localhost`, `5433`                  |
+| `DB_USER`, `DB_PASSWORD`, `DB_NAME` | Credenciales                          | `banco`, `banco123`, `banco_digital` |
+| `REDIS_HOST`, `REDIS_PORT`          | Conexión a Redis                      | `localhost`, `6379`                  |
+| `ELASTIC_NODE`                      | URL de Elasticsearch                  | `http://localhost:9200`              |
+
+Las variables se validan al arrancar con Joi: si falta alguna, la app no inicia y muestra cuál.
+
+## Datos de prueba
+
+La migración `SeedDemoData` crea clientes y cuentas en las tres monedas. Cada saldo inicial tiene su depósito registrado.
+
+| Cliente          | Cuenta       | Moneda | Saldo     | Estado |
+| ---------------- | ------------ | ------ | --------- | ------ |
+| Ana Martínez     | `1000000001` | DOP    | 50,000.00 | ACTIVE |
+| Ana Martínez     | `1000000002` | USD    | 1,200.00  | ACTIVE |
+| Carlos Rodríguez | `1000000003` | DOP    | 15,000.00 | ACTIVE |
+| Carlos Rodríguez | `1000000004` | EUR    | 800.00    | ACTIVE |
+| María Gómez      | `1000000005` | USD    | 300.00    | ACTIVE |
+| María Gómez      | `1000000006` | DOP    | 2,500.00  | FROZEN |
+
+`SeedExchangeRates` carga las tasas entre DOP, USD y EUR en ambas direcciones.
+
+## API GraphQL
+
+El esquema completo está en [`src/schema.gql`](src/schema.gql) y también se puede explorar desde GraphiQL.
+
+| Queries                                    | Mutations                                                         |
+| ------------------------------------------ | ----------------------------------------------------------------- |
+| `customers`, `customer`, `searchCustomers` | `createCustomer`, `updateCustomer`, `reindexCustomers`            |
+| `account`, `accountTransactions`           | `openAccount`, `freezeAccount`, `unfreezeAccount`, `closeAccount` |
+| `transaction`                              | `deposit`, `withdraw`, `transfer`                                 |
+| `exchangeRates`                            | `setExchangeRate`                                                 |
+
+### Ejemplos
+
+Transferencia entre monedas (DOP → USD):
+
+```graphql
+mutation {
+  transfer(
+    input: {
+      sourceAccountNumber: "1000000001"
+      destinationAccountNumber: "1000000002"
+      amount: "6350.00"
+      description: "Pago"
+    }
+  ) {
+    amount
+    currency
+    convertedAmount
+    exchangeRate
+  }
+}
+```
+
+Cliente con sus cuentas:
+
+```graphql
+query {
+  customer(id: "c1000000-0000-4000-8000-000000000001") {
+    firstName
+    accounts {
+      accountNumber
+      currency
+      balance
+      status
+    }
+  }
+}
+```
+
+Búsqueda con tolerancia a errores de escritura:
+
+```graphql
+query {
+  searchCustomers(term: "carlso rodrigez") {
+    firstName
+    lastName
+    email
+  }
+}
+```
+
+Historial de una cuenta:
+
+```graphql
+query {
+  accountTransactions(accountNumber: "1000000001", limit: 10) {
+    type
+    amount
+    currency
+    convertedAmount
+    createdAt
+  }
+}
+```
+
+### Errores
+
+Todos los errores siguen el mismo formato, con un código estable en `extensions.code`:
+
+```json
+{
+  "message": "Insufficient funds",
+  "path": ["withdraw"],
+  "extensions": { "code": "INSUFFICIENT_FUNDS" }
+}
+```
+
+| Código                  | Cuándo                                                |
+| ----------------------- | ----------------------------------------------------- |
+| `BAD_USER_INPUT`        | Validación fallida (incluye `details` con cada campo) |
+| `NOT_FOUND`             | El recurso no existe                                  |
+| `CONFLICT`              | Email o documento de cliente duplicado                |
+| `INSUFFICIENT_FUNDS`    | Saldo insuficiente                                    |
+| `ACCOUNT_NOT_ACTIVE`    | Operación sobre una cuenta congelada o cerrada        |
+| `ACCOUNT_CLOSED`        | Intento de modificar una cuenta cerrada               |
+| `ACCOUNT_HAS_BALANCE`   | Cerrar una cuenta con saldo                           |
+| `SAME_ACCOUNT`          | Transferencia a la misma cuenta                       |
+| `RATE_NOT_AVAILABLE`    | No hay tasa para el par de monedas                    |
+| `INTERNAL_SERVER_ERROR` | Error inesperado; el detalle solo queda en los logs   |
+
+## Pruebas
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm run test         # unitarias
+npm run test:cov     # unitarias con cobertura
+npm run test:e2e     # integración (requiere docker compose up)
 ```
 
-## Deployment
+- **Unitarias:** `TransactionsService` (saldos, conversión, orden de bloqueo, reglas de negocio), `AccountsService` (estados de cuenta) y `ExchangeRatesService` (caché e invalidación). Los servicios se instancian directamente con dependencias simuladas.
+- **Integración:** levantan la app completa contra PostgreSQL, Redis y Elasticsearch reales y prueban por GraphQL: health, formato de errores y una transferencia entre monedas de principio a fin.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Arquitectura y decisiones
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Estructura
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+```
+src/
+├── customers/        clientes y búsqueda en Elasticsearch
+├── accounts/         cuentas y sus estados
+├── transactions/     depósitos, retiros y transferencias
+├── exchange-rates/   tasas de cambio
+├── cache/            cliente Redis + CacheService
+├── search/           cliente Elasticsearch
+├── health/           /health con Terminus
+├── common/           enums, errores, validadores y plugin de logs
+├── config/           validación de variables de entorno
+└── database/         DataSource y migraciones
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Cada módulo es dueño de su entidad y expone un servicio. Los demás módulos usan ese servicio, nunca el repositorio ajeno. Los resolvers solo reciben la petición y delegan; la lógica está en los servicios.
 
-## Observability
+### Un solo microservicio
 
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
+Clientes, cuentas y movimientos forman un mismo contexto de negocio. Las transferencias necesitan actualizar dos saldos y registrar el movimiento de forma atómica; separarlos en servicios distintos obligaría a usar transacciones distribuidas (sagas). Internamente está modularizado, así que un módulo como `exchange-rates` podría extraerse sin reescribir el resto.
 
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
+### Dinero
 
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
+- Montos en `numeric(18,2)` y tasas en `numeric(18,6)`, nunca `float`.
+- En la API los montos viajan como `String` (`"1500.00"`) para no perder precisión, y los cálculos se hacen con `decimal.js`.
+- Las conversiones se redondean a 2 decimales con `ROUND_HALF_UP`.
+- Las cuentas abren en cero: el dinero solo entra mediante un depósito, así que todo saldo está respaldado por movimientos.
+- Cada transferencia guarda la tasa usada y el monto convertido, para auditoría.
+- Las transacciones son inmutables (sin `updatedAt`).
 
-This project is already instrumented. To connect it, run this and approve the code it prints at [observe.nestjs.com/link](https://observe.nestjs.com/link) - signing up for free if you have no account:
+### Concurrencia
 
-```bash
-$ npx @nestjs/observe link
-```
+Cada operación corre en una transacción de base de datos y bloquea las cuentas involucradas con `SELECT ... FOR UPDATE`. En las transferencias, las cuentas se bloquean siempre en el mismo orden para evitar deadlocks entre transferencias opuestas simultáneas (A→B y B→A).
 
-It writes the app key and secret into `.env` and makes every `nest start` script (`start`, `start:dev`, `start:debug`) load it. In production, set `OBSERVE_APP_KEY` and `OBSERVE_APP_SECRET` in the environment instead.
+### Identificadores
 
-Or do it by hand: create an application and an API key at [observe.nestjs.com](https://observe.nestjs.com), and set the pair as `OBSERVE_APP_KEY` and `OBSERVE_APP_SECRET` in the environment the app runs in.
+La API usa el **número de cuenta** (lo que conoce el cliente) y la base de datos usa UUID para las relaciones.
 
-The free plan needs no payment details and covers 300,000 events a month. You can also browse the [live demo](https://www.observe-demo.nestjs.com/dashboard) first - the whole dashboard over a busy service's data, with nothing to install.
+### Caché (Redis)
 
-## Resources
+Se cachean las tasas de cambio: se leen en cada transferencia y cambian poco. Al actualizar una tasa se invalidan ambas direcciones, y el TTL de una hora es una red de seguridad. Los **saldos no se cachean**: un saldo desactualizado es un riesgo, y las transferencias necesitan el valor real bloqueado en la base. Si Redis falla, el servicio sigue funcionando contra PostgreSQL.
 
-Check out a few resources that may come in handy when working with NestJS:
+### Búsqueda (Elasticsearch)
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observe](https://observe.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+PostgreSQL es la fuente de verdad. Los clientes se indexan después de crearse o actualizarse; la búsqueda obtiene los ids desde Elasticsearch (con tolerancia a errores de escritura y coincidencia exacta por documento) y los datos desde PostgreSQL. Si la indexación falla, la operación no se cae y `reindexCustomers` reconstruye el índice. Al iniciar, si el índice no existe, se crea y se carga.
 
-## Support
+### Health y logs
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- `GET /health` verifica PostgreSQL, Redis y Elasticsearch y responde 503 si alguno falla.
+- Cada operación GraphQL se registra con su duración y, si falla, su código de error.
+- En desarrollo los logs son legibles en consola; en producción (`NODE_ENV=production`) se emiten en JSON.
 
-## Stay in touch
+## Limitaciones y mejoras futuras
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- Las pruebas e2e usan la base de desarrollo; lo ideal sería una base dedicada que se limpie en cada ejecución.
+- Cobertura de pruebas en clientes y búsqueda.
+- La búsqueda cubre clientes; se podría extender a transacciones (por descripción, fecha o monto).
+- TypeORM crea un tipo enum por columna; con `enumName` se podría compartir un único tipo `currency`.
+- DataLoader para evitar consultas N+1 al pedir las cuentas de muchos clientes.
+- GraphiQL está habilitado también en producción para facilitar la evaluación; en un entorno real se desactivaría.
+- Autenticación y autorización quedaron fuera del alcance del reto.
